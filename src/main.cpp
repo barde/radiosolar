@@ -51,6 +51,7 @@ void setWifi(bool isOn)
   {
     // wake wifi
     WiFi.mode(WIFI_STA);
+    Serial.println("Wifi woken");
   }
 
   if(!isOn)
@@ -59,6 +60,7 @@ void setWifi(bool isOn)
     WiFi.disconnect();
     WiFi.mode(WIFI_OFF);
     WiFi.forceSleepBegin(reportsMean * 1000000L - 250000);
+    Serial.println("Wifi sleeping");
   }
 }
 
@@ -157,4 +159,3 @@ void loop()
     sendDataToThingspeak(meanReportValue);
   }
 }
-
