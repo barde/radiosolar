@@ -3,7 +3,8 @@
  * 2017
  *
  * Sends a converted CPM count from a Geiger Miller tube to a websink for IoT data logging.
- * Optimized for ESP8266 low power usage by switching the wifi only on when needed.
+ * Optimized for ESP8266 low power usage by switching the wifi only on when needed. Default is a 
+ * push of the average for 15 minutes. The data is converted to a rough estimation in micro Sievert per hour.
  */
 #include "Arduino.h"
 
@@ -14,54 +15,44 @@ extern "C" {
 
 #include <ThingSpeak.h> 
 
+// include your own credentials in this file
 #include "credentials.h"    
 
-
+// the out pin of the geiger tube is connected via transistor to this pin of the esp8266
 int gm_action_pin = D1;
 
+// make a mean value of multiple counts. default is 15 minutes.
+const byte reportsMean = 15;
+
+// --- END OF CONFIGURATION ---
+
+
+// measure for one minute to get counts per minute
 const long interval = 1000 * 60;
 
-const byte reportsMean = 2;
-
+// data cache
 double cachedData[reportsMean];
 
+// async waiting for data collection
 unsigned long previousMillisReport = 0;
 
+// count of already collected data
 byte writtenReports = 0;
 
+// async waiting for the push
 unsigned long previousMillisRead = 0;
 
+// counts the events per minute in the ISR
 volatile int cpm_raw = 0;
 
+// magic number for LND 712 to convert from cpm to uSv/h
 const double coefficientOfConversion = 0.00812;
-
 
 WiFiClient espClient;
 
-
-
-void cpm_event()
+void ICACHE_RAM_ATTR cpm_event()
 {
     cpm_raw = cpm_raw + 1;
-}
-
-void setWifi(bool isOn)
-{
-  if(isOn)
-  {
-    // wake wifi
-    WiFi.mode(WIFI_STA);
-    Serial.println("Wifi woken");
-  }
-
-  if(!isOn)
-  {
-    // put wifi into sleep again
-    WiFi.disconnect();
-    WiFi.mode(WIFI_OFF);
-    WiFi.forceSleepBegin(reportsMean * 1000000L - 250000);
-    Serial.println("Wifi sleeping");
-  }
 }
 
 void connectWiFi()
@@ -73,13 +64,44 @@ void connectWiFi()
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  //wifi_station_set_auto_connect(true);
   wifi_station_set_hostname(wifiHostname);
 
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
   }
+}
+
+bool isWifiSleeping = false;
+void setWifi(bool isOn)
+{
+  //noInterrupts();
+
+  if(isOn && isWifiSleeping)
+  {
+    // wake wifi
+    WiFi.forceSleepWake();
+    delay(250);
+
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      delay(100);
+    }
+
+    Serial.println("Wifi woken");
+    isWifiSleeping = false;
+  }
+
+  if(!isOn && !isWifiSleeping)
+  {
+    // put wifi into sleep
+    WiFi.forceSleepBegin();
+    delay(250);
+    Serial.println("Wifi sleeping");
+    isWifiSleeping = true;
+  }
+
+  //interrupts();
 }
 
 double getAverage(double singleValues[])
