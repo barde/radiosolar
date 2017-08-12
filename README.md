@@ -5,16 +5,26 @@
 ### Why
 
 Proof of concept to make a low power device with the ESP8266.
+Maybe some help for makers who don't want to spend their time debugging and searching through 
+lots of forum posts.
 
 ### How
 
-Get the hardware.
-Clone repository.
-Make your own credentials.h with SSID, Wifi Passwort and your Thinkspeak configuration.
++ Get the hardware.
++ Clone repository.
++ Make your own credentials.h with SSID, Wifi Passwort and your Thinkspeak configuration.
 
-### What
+### Features
 
-ESP8266
-Sparkfun Geiger Counter
-Chinese solar panel & charge controller
-Batteries
++ synchronous wait only for WiFi syscalls. Yes, they are mandatory.
++ collection of geiger counts via interrupt
++ ESP8266 Modem Sleep for power preservation
++ MQTT support for thinkspeak
+
+### Hardware
+
++ ESP8266
++ Sparkfun Geiger Counter
++ Chinese solar panel
++ charge controller
++ Batteries
