@@ -19,12 +19,14 @@ lots of forum posts.
 + synchronous wait only for WiFi syscalls. Yes, they are mandatory.
 + collection of geiger counts via interrupt
 + ESP8266 Modem Sleep for power preservation
++ logging of battery charge and discharge
 + MQTT support for thinkspeak
 
 ### Hardware
 
 + ESP8266
 + Sparkfun Geiger Counter
++ INA219 Current/Voltage sensor
 + Chinese solar panel
 + charge controller
 + Batteries
