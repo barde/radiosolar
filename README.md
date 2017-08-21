@@ -33,7 +33,7 @@ lots of forum posts.
 
 ### Whacky prototype
 
-Pic tbd. Still to whacky.
+Pic tbd. Still to whacky. Really.
 
 ### Demo
 
