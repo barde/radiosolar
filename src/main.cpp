@@ -7,13 +7,13 @@
  * push of the average for 15 minutes. The data is converted to a rough estimation in micro Sievert per hour.
  */
 #include "Arduino.h"
-
 #include <ESP8266WiFi.h>    
 extern "C" {
   #include "user_interface.h"
 }
-
 #include <ThingSpeak.h> 
+#include <Wire.h>
+#include <Adafruit_INA219.h>
 
 // include your own credentials in this file
 #include "credentials.h"    
@@ -22,16 +22,20 @@ extern "C" {
 int gm_action_pin = D8;
 
 // make a mean value of multiple counts. default is 15 minutes.
-const byte reportsMean = 15;
+const byte reportsMean = 2;
 
 // --- END OF CONFIGURATION ---
 
+// ina219 current/voltage sensor
+Adafruit_INA219 ina219;
 
 // measure for one minute to get counts per minute
 const long interval = 1000 * 60;
 
-// data cache
-double cachedData[reportsMean];
+// data cache for usvh, voltage and current
+float cachedData[reportsMean];
+float cachedVoltage[reportsMean];
+float cachedCurrent[reportsMean];
 
 // async waiting for data collection
 unsigned long previousMillisReport = 0;
@@ -104,9 +108,9 @@ void setWifi(bool isOn)
   //interrupts();
 }
 
-double getAverage(double singleValues[])
+float getAverage(float singleValues[])
 {
-  double totalAddedValue;
+  float totalAddedValue;
 
   for(int i = 0; i < reportsMean; i++)
   {
@@ -116,23 +120,56 @@ double getAverage(double singleValues[])
   return totalAddedValue / reportsMean;
 }
 
-void sendDataToThingspeak(double usvh)
+void sendDataToThingspeak(float usvh, float voltage, float current)
 {
     // wake wifi
     setWifi(true);
 
-    // make a neat char array from the double to post
+    // make a neat char array from the usvh to post
     String data = String(usvh, 5);
     int length = data.length();
     char msgBuffer[length];
     data.toCharArray(msgBuffer,length+1);
-    Serial.print("Sending data to thingspeak: ");
+    Serial.print("Sending usvh data to thingspeak: ");
     Serial.println(msgBuffer);  
-    ThingSpeak.writeField(myChannelNumber, 1, msgBuffer, myWriteAPIKey);
+    ThingSpeak.setField(1, msgBuffer);
+
+    // voltage and current
+    ThingSpeak.setField(2, voltage);
+    Serial.print("Sending voltage data to thingspeak: ");
+    Serial.println(voltage);     
+    ThingSpeak.setField(3, current);
+    Serial.print("Sending current data to thingspeak: ");
+    Serial.println(current);  
+
+    ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+
     Serial.println("Data sent to IoT sink");
 
     // put wifi into sleep again
     setWifi(false);
+}
+
+void logVoltageCurrent(byte logPlace)
+{
+  float shuntvoltage = 0;
+  float busvoltage = 0;
+  float current_mA = 0;
+  float loadvoltage = 0;
+
+  shuntvoltage = ina219.getShuntVoltage_mV();
+  busvoltage = ina219.getBusVoltage_V();
+  current_mA = ina219.getCurrent_mA();
+  loadvoltage = busvoltage + (shuntvoltage / 1000);
+  
+  Serial.print("Bus Voltage:   "); Serial.print(busvoltage); Serial.println(" V");
+  Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage); Serial.println(" mV");
+  Serial.print("Load Voltage:  "); Serial.print(loadvoltage); Serial.println(" V");
+  Serial.print("Current:       "); Serial.print(current_mA); Serial.println(" mA");
+  Serial.println("");
+
+  cachedVoltage[logPlace] = loadvoltage;
+  cachedCurrent[logPlace] = current_mA;
 }
 
 void setup()
@@ -145,6 +182,8 @@ void setup()
   Serial.println("Wifi connected");
   ThingSpeak.begin(espClient);
   Serial.println("Thingspeak connected");
+  ina219.begin();
+  ina219.setCalibration_16V_400mA();
 }
 
 void loop()
@@ -158,7 +197,7 @@ void loop()
 
     // transform cpm to microsievert per second
     noInterrupts();
-    double usvh = cpm_raw * coefficientOfConversion;
+    float usvh = cpm_raw * coefficientOfConversion;
     cpm_raw = 0;
     interrupts();
 
@@ -166,6 +205,7 @@ void loop()
     Serial.println(usvh, 5);
 
     cachedData[writtenReports] = usvh;
+    logVoltageCurrent(writtenReports);
     writtenReports = writtenReports + 1;
   }
 
@@ -176,8 +216,10 @@ void loop()
     
     writtenReports = 0;
 
-    double meanReportValue = getAverage(cachedData);
+    float meanReportValue = getAverage(cachedData);
+    float meanVoltage = getAverage(cachedVoltage);
+    float meanCurrent_mA = getAverage(cachedCurrent);
 
-    sendDataToThingspeak(meanReportValue);
+    sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA);
   }
 }
