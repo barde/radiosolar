@@ -2,8 +2,6 @@
 
 ![](doc/logo.png?raw=true)
 
-## Power Independent Measurement of Radiation by ESP8266
-
 ### Why
 
 Proof of concept to make a low power device with the ESP8266.
