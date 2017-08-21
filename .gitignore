@@ -1,6 +1,6 @@
 .pioenvs
 .piolibdeps
-.vscode/c_cpp_properties.json
+.vscode/
 src/credentials.h
 .travis.yml
 lib/readme.txt
