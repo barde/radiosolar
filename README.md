@@ -67,6 +67,8 @@ Pic tbd. Still to whacky. Really.
 + remove Sparkfun MC as we don't need it
 + if we leave it we could at least let it collect the mean value and deep sleep the esp completely
 + remove useless onboard LED
++ custom PCB with only necessary components (no LEDs, no Serial to USB chips, no other power drains)
++ if we get under 1mA we could try power harvesting stuff as getting just the environment heat to power the device
 
 ### Demo
 

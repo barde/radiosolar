@@ -5,3 +5,4 @@ src/credentials.h
 .travis.yml
 lib/readme.txt
 platformio.ini
+.vscode/c_cpp_properties.json
