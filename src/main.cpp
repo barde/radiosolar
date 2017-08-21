@@ -204,7 +204,9 @@ void setup()
   ThingSpeak.begin(espClient);
   Serial.println("Thingspeak connected");
   ina219.begin();
-  ina219.setCalibration_16V_400mA();
+  // no calibration = 32V 2A
+  //ina219.setCalibration_32V_1A();
+  //ina219.setCalibration_16V_400mA();
 }
 
 void loop()
