@@ -12,13 +12,27 @@ lots of forum posts.
 
 + Get the hardware.
 + Clone repository.
-+ Make your own credentials.h with SSID, Wifi Passwort and your Thinkspeak configuration.
++ Edit your credentials.h
+
+#### credentials.h Example
+
+```cpp
+unsigned long myChannelNumber = 123456;
+const char * myWriteAPIKey = "DEADBEEF123";
+
+const char* ssid = "mySSID";
+const char* password = "HopefullySomethingSensible";
+char wifiHostname[] = "radiosolar";
+
+const char* radmonUsername = "myRadmonUser";
+const char* radmonPassword = "LetTheAdminGenerateIt";
+```
 
 ### Features
 
-+ synchronous wait only for WiFi syscalls. Yes, they are mandatory.
++ synchronous wait only for WiFi syscalls. Yes, they are [mandatory](http://www.esp8266.com/viewtopic.php?p=38984&sid=e092a19d9806be5b6415ccd3439251ec#p38984).
 + collection of geiger counts via interrupt
-+ ESP8266 Modem Sleep for power preservation
++ ESP8266 Modem Sleep (=Wifi turned off) for power preservation
 + logging of battery charge and discharge
 + MQTT support for thinkspeak
 
@@ -31,9 +45,28 @@ lots of forum posts.
 + charge controller
 + Batteries
 
+#### Power considerations
+
+Well, probably some numbers are required for getting the correct value of solar panel and battery sizes.
+
+This setup contains a voltage and current sensor for monitoring the battery state. Also useful as sunshine sensor.
+
+A switching power supply in combination with a low power optimized solar charging control is recommended. MPPT is 
+advised. My setup uses a 2p2s Lithium Ion combination with the BQ24650 from TI.
+
+### Schema
+
+![](doc/schema.png?raw=true)
+
 ### Whacky prototype
 
 Pic tbd. Still to whacky. Really.
+
+### Possible improvements
+
++ remove Sparkfun MC as we don't need it
++ if we leave it we could at least let it collect the mean value and deep sleep the esp completely
++ remove useless onboard LED
 
 ### Demo
 
