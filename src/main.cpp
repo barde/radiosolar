@@ -14,6 +14,7 @@ extern "C" {
 #include <ThingSpeak.h> 
 #include <Wire.h>
 #include <Adafruit_INA219.h>
+#include <ESP8266HTTPClient.h>
 
 // include your own credentials in this file
 #include "credentials.h"    
@@ -22,7 +23,7 @@ extern "C" {
 int gm_action_pin = D8;
 
 // make a mean value of multiple counts. default is 15 minutes.
-const byte reportsMean = 2;
+const byte reportsMean = 15;
 
 // --- END OF CONFIGURATION ---
 
@@ -53,6 +54,7 @@ volatile int cpm_raw = 0;
 const double coefficientOfConversion = 0.00812;
 
 WiFiClient espClient;
+HTTPClient http;
 
 void ICACHE_RAM_ATTR cpm_event()
 {
@@ -120,11 +122,33 @@ float getAverage(float singleValues[])
   return totalAddedValue / reportsMean;
 }
 
+void sendDataToRadmon(double cpm)
+{
+  String uri = String("http://radmon.org/radmon.php?function=submit&user=");
+  uri.concat(String(radmonUsername) + String("&password=") + String(radmonPassword));
+  uri.concat(String("&value=") + String(cpm,0) + String("&unit=CPM"));
+
+  Serial.print("RadmonString:");
+  Serial.println(uri);
+
+  http.begin(uri); //HTTP
+  
+  int httpCode = http.GET();
+
+  if(httpCode == HTTP_CODE_OK) 
+  {
+    Serial.println("Data sent to Radmon");
+  }
+  else 
+  {
+    Serial.println("Error sending data to Radmon");
+  }
+  
+  http.end();
+}
+
 void sendDataToThingspeak(float usvh, float voltage, float current)
 {
-    // wake wifi
-    setWifi(true);
-
     // make a neat char array from the usvh to post
     String data = String(usvh, 5);
     int length = data.length();
@@ -145,9 +169,6 @@ void sendDataToThingspeak(float usvh, float voltage, float current)
     ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
 
     Serial.println("Data sent to IoT sink");
-
-    // put wifi into sleep again
-    setWifi(false);
 }
 
 void logVoltageCurrent(byte logPlace)
@@ -220,6 +241,14 @@ void loop()
     float meanVoltage = getAverage(cachedVoltage);
     float meanCurrent_mA = getAverage(cachedCurrent);
 
+    // wake wifi
+    setWifi(true);
+
+    // push to data sinks
     sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA);
+    sendDataToRadmon(meanReportValue / coefficientOfConversion);
+    
+    // put wifi into sleep again
+    setWifi(false);
   }
 }
