@@ -19,7 +19,7 @@ extern "C" {
 #include "credentials.h"    
 
 // the out pin of the geiger tube is connected via transistor to this pin of the esp8266
-int gm_action_pin = D1;
+int gm_action_pin = D8;
 
 // make a mean value of multiple counts. default is 15 minutes.
 const byte reportsMean = 15;
@@ -138,7 +138,7 @@ void sendDataToThingspeak(double usvh)
 void setup()
 {
   Serial.begin(9600);
-  pinMode(gm_action_pin, INPUT);
+  pinMode(gm_action_pin, INPUT_PULLDOWN_16);
   attachInterrupt(gm_action_pin, cpm_event, RISING);
   Serial.println("Interrupts attached!");
   connectWiFi();
