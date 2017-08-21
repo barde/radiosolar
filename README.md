@@ -90,3 +90,5 @@ Pic tbd. Still too whacky. Really.
 [Thingspeak raw data](https://thingspeak.com/channels/305931)
 
 ![](doc/logoEnd.png?raw=true)
+
+La Fin
