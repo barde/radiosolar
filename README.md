@@ -30,3 +30,15 @@ lots of forum posts.
 + Chinese solar panel
 + charge controller
 + Batteries
+
+### Whacky prototype
+
+Pic tbd. Still to whacky.
+
+### Demo
+
+[Radmon worldwide map](http://radmon.org/)
+
+[Radmon profile](http://www.radmon.org/radmon.php?function=showuserpage&user=clms)
+
+[Thingspeak raw data](https://thingspeak.com/channels/305931)
