@@ -10,6 +10,7 @@
 #include <ESP8266WiFi.h>    
 extern "C" {
   #include "user_interface.h"
+  #include "gpio.h"  
 }
 #include <ThingSpeak.h> 
 #include <Wire.h>
@@ -56,11 +57,6 @@ const double coefficientOfConversion = 0.00812;
 WiFiClient espClient;
 HTTPClient http;
 
-void ICACHE_RAM_ATTR cpm_event()
-{
-    cpm_raw = cpm_raw + 1;
-}
-
 void connectWiFi()
 {
   if(WiFi.status() == WL_CONNECTED)
@@ -78,36 +74,32 @@ void connectWiFi()
   }
 }
 
-bool isWifiSleeping = false;
-void setWifi(bool isOn)
+void wakeupFromLightSleep()
 {
-  //noInterrupts();
+  cpm_raw = cpm_raw + 1;  
+  Serial.println("Woke up from sleep");
+}
 
-  if(isOn && isWifiSleeping)
-  {
-    // wake wifi
-    WiFi.forceSleepWake();
-    delay(250);
+void enterLightSleep()
+{
+  Serial.println("going to light sleep...");
+  wifi_station_disconnect();
+  wifi_set_opmode(NULL_MODE);
+  wifi_fpm_set_sleep_type(LIGHT_SLEEP_T); //light sleep mode
+  gpio_pin_wakeup_enable(GPIO_ID_PIN(gm_action_pin), GPIO_PIN_INTR_HILEVEL); //set the interrupt to look for HIGH pulses on Pin 0 (the PIR).
+  wifi_fpm_open();
+  delay(100);
+  wifi_fpm_set_wakeup_cb(wakeupFromLightSleep); //wakeup callback
+  wifi_fpm_do_sleep(0xFFFFFFF); 
+  delay(100);
+}
 
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      delay(100);
-    }
-
-    Serial.println("Wifi woken");
-    isWifiSleeping = false;
-  }
-
-  if(!isOn && !isWifiSleeping)
-  {
-    // put wifi into sleep
-    WiFi.forceSleepBegin();
-    delay(250);
-    Serial.println("Wifi sleeping");
-    isWifiSleeping = true;
-  }
-
-  //interrupts();
+void wakeWifi()
+{
+  wifi_fpm_close;
+  wifi_set_opmode(STATION_MODE);
+  wifi_station_connect();
+  Serial.println("Wifi enabled");
 }
 
 float getAverage(float singleValues[])
@@ -197,8 +189,6 @@ void setup()
 {
   Serial.begin(9600);
   pinMode(gm_action_pin, INPUT_PULLDOWN_16);
-  attachInterrupt(gm_action_pin, cpm_event, RISING);
-  Serial.println("Interrupts attached!");
   connectWiFi();
   Serial.println("Wifi connected");
   ThingSpeak.begin(espClient);
@@ -206,14 +196,16 @@ void setup()
   ina219.begin();
   // no calibration = 32V 2A
   //ina219.setCalibration_32V_1A();
-  //ina219.setCalibration_16V_400mA();
+  ina219.setCalibration_16V_400mA();
 }
 
 void loop()
 {
   unsigned long currentMillis = millis();
 
-  // run every minute
+  // timing is not exact beacause it is only checked on geiger events
+  // the reason is the buggy wifi_fpm_do_sleep() which does not respect any microsecond value except 0xFFFFFFFF
+  // run roughly every minute
   if (currentMillis - previousMillisRead >= interval) 
   {
     previousMillisRead = currentMillis;
@@ -232,7 +224,7 @@ void loop()
     writtenReports = writtenReports + 1;
   }
 
-  // run every reportMean * minutes time. default is every 15 minutes.
+  // run roughly every reportMean * minutes time. default is every 15 minutes.
   if (currentMillis - previousMillisReport >= interval * reportsMean)
   {
     previousMillisReport = currentMillis;
@@ -243,14 +235,12 @@ void loop()
     float meanVoltage = getAverage(cachedVoltage);
     float meanCurrent_mA = getAverage(cachedCurrent);
 
-    // wake wifi
-    setWifi(true);
+    wakeWifi();
 
     // push to data sinks
     sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA);
     sendDataToRadmon(meanReportValue / coefficientOfConversion);
-    
-    // put wifi into sleep again
-    setWifi(false);
   }
+
+  enterLightSleep();      
 }
