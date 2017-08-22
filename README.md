@@ -7,6 +7,7 @@
 Proof of concept to make a low power device with the ESP8266.
 Maybe some help for makers who don't want to spend their time debugging and searching through 
 lots of forum posts.
+Mostly the low power functionality of the ESP8266 is heavily used such as the "modem sleep" and the "light sleep".
 
 ### How
 
@@ -54,7 +55,7 @@ const char* radmonPassword = "LetTheAdminGenerateIt";
 + all diodes are LX2410A by MicroSemi
 + BQ24650 solar charge controller
 + Polulu 5V step down with >98% efficiency
-+ 2s2p 8.4 V 4 Ah Lithium Ion battery
++ 2s2p 8.4 V 4 Ah Lithium Ion battery with a BMS
 
 #### Power considerations
 
@@ -75,9 +76,13 @@ Pic tbd. Still too whacky. Really.
 
 ### Possible improvements
 
+Most improvements are only usable in a production scenario. As this setup is experimental all 
+changes below hinder possible bug fixing and development.
+
 + remove the Atmega Microcontroller on the Sparkfun Geiger Board as we don't need it
 + if we leave it we could at least let it collect the mean value and deep sleep the esp completely
 + remove useless onboard LED
++ turn off the Serial-USB chip on the Wemos D1 (leaving the D+ and D- USB lines open does not change the current)
 + custom PCB with only necessary components (no LEDs, no Serial to USB chips, no other power drains)
 + if we get under 1mA we could try power harvesting stuff as getting just the environment heat to power the device
 
