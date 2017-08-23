@@ -76,7 +76,7 @@ advised. My setup uses a 2p2s Lithium Ion combination with the BQ24650 from TI.
 
 #### Case
 
-This project comes with a ~~batteries~~ [3D printed case](../blob/master/doc/case.stl) included.
+This project comes with a ~~batteries~~ [3D printed case](../master/doc/case.stl) included.
 
 ### Possible improvements
 
