@@ -70,9 +70,13 @@ advised. My setup uses a 2p2s Lithium Ion combination with the BQ24650 from TI.
 
 ![](doc/schema.png?raw=true)
 
-### Whacky prototype
+### Prototype
 
-Pic tbd. Still too whacky. Really.
+<img width="500" alt="prototype with case" src="doc/radiosolar_prototype.jpg?raw=true">
+
+#### Case
+
+This project comes with a ~~batteries~~ [3D printed case](../blob/master/doc/case.stl) included.
 
 ### Possible improvements
 
@@ -95,5 +99,3 @@ changes below hinder possible bug fixing and development.
 [Thingspeak raw data](https://thingspeak.com/channels/305931)
 
 ![](doc/logoEnd.png?raw=true)
-
-La Fin
