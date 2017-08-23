@@ -103,7 +103,7 @@ changes below hinder possible bug fixing and development.
 
 ### Kudos
 
-+ [Phialo 3D Design](https://phialo.de) for the 3D sun model and general support
++ [Phialo 3D Design](https://phialo.de) for the 3D sun model, 3D-printing the enclosure and general support
 + Adafruit and Thingspeak for their great libraries, data sink and general awesomeness
 + Sparkfun and Espressif for their neat hardware
 + [Radmon](http://radmon.org/) for their nice map of Geiger counter values. Check it out!
