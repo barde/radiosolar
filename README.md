@@ -5,9 +5,10 @@
 ### Why
 
 Proof of concept to make a low power device with the ESP8266.
-Maybe some help for makers who don't want to spend their time debugging and searching through 
-lots of forum posts.
 Mostly the low power functionality of the ESP8266 is heavily used such as the "modem sleep" and the "light sleep".
+
+The battery load and charge is logged which also provides the sunshine time. This is used for making the proper size for the
+needed battery capacity and solar panel size. 
 
 ### How
 
@@ -20,6 +21,7 @@ Mostly the low power functionality of the ESP8266 is heavily used such as the "m
     + you could use a simple USB charger or any other stationary power supply
 + Clone repository
 + Create your credentials.h
++ Compile and flash the code with either the Arduino IDE, PlatformIO or the Espressif IDF
 
 #### credentials.h
 
@@ -92,10 +94,19 @@ changes below hinder possible bug fixing and development.
 
 ### Demo
 
-[Radmon worldwide map](http://radmon.org/)
++ [Radmon worldwide map](http://radmon.org/)
 
-[Radmon profile](http://www.radmon.org/radmon.php?function=showuserpage&user=clms)
++ [Radmon profile](http://www.radmon.org/radmon.php?function=showuserpage&user=clms)
 
-[Thingspeak raw data](https://thingspeak.com/channels/305931)
++ [Thingspeak raw data](https://thingspeak.com/channels/305931)
+  + The raw data includes the battery management overview. The voltage and current draw/charge is logged.
+
+### Kudos
+
++ [Phialo 3D Design](https://phialo.de) for the 3D sun model and general support
++ Adafruit and Thingspeak for their great libraries, data sink and general awesomeness
++ Sparkfun and Espressif for their neat hardware
++ [Radmon](http://radmon.org/) for their nice map of Geiger counter values. Check it out!
++ all the ingenious and industrious tinkerers who paved my way into the depths of the ESP8266
 
 ![](doc/logoEnd.png?raw=true)
