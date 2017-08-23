@@ -101,6 +101,13 @@ changes below hinder possible bug fixing and development.
 + [Thingspeak raw data](https://thingspeak.com/channels/305931)
   + The raw data includes the battery management overview. The voltage and current draw/charge is logged.
 
+### Known Issues
+
+While charging the CPM count increases nearly by factor two. This is probably caused by the increased V+ voltage 
+from the switching power regulator. A possible fix would be a cleaner 5V source or a LDO after the switching output.
+
+![](doc/chargingIssue.png?raw=true)
+
 ### Kudos
 
 + [Phialo 3D Design](https://phialo.de) for the 3D sun model and general support
