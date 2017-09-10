@@ -92,6 +92,14 @@ changes below hinder possible bug fixing and development.
 + custom PCB with only necessary components (no LEDs, no Serial to USB chips, no other power drains)
 + if we get under 1mA we could try power harvesting stuff as getting just the environment heat to power the device
 
+### Random Numbers
+
+This setup also generates true random numbers. The algorithm is a derived form of John Walker's 
+[random number generator](https://sites.google.com/site/astudyofentropy/project-definition/radioactive-decay).
+It posts a full unsigned int when enough entropy has been collected.
+
+The collection of all collected randomness is posted to the IoT data sink.
+
 ### Demo
 
 + [Radmon worldwide map](http://radmon.org/)

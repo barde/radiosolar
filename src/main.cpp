@@ -8,6 +8,7 @@
  */
 #include "Arduino.h"
 #include <ESP8266WiFi.h>    
+#include "trueRng.h"
 extern "C" {
   #include "user_interface.h"
 }
@@ -56,9 +57,13 @@ const double coefficientOfConversion = 0.00812;
 WiFiClient espClient;
 HTTPClient http;
 
+TrueRng trueRng;
+
 void ICACHE_RAM_ATTR cpm_event()
 {
     cpm_raw = cpm_raw + 1;
+
+    trueRng.addTimestamp(millis());
 }
 
 void connectWiFi()
@@ -147,7 +152,7 @@ void sendDataToRadmon(double cpm)
   http.end();
 }
 
-void sendDataToThingspeak(float usvh, float voltage, float current)
+void sendDataToThingspeak(float usvh, float voltage, float current, bool hasRandomNumber, unsigned long randomNumber)
 {
     // make a neat char array from the usvh to post
     String data = String(usvh, 5);
@@ -165,6 +170,14 @@ void sendDataToThingspeak(float usvh, float voltage, float current)
     ThingSpeak.setField(3, current);
     Serial.print("Sending current data to thingspeak: ");
     Serial.println(current);  
+
+    // a random number when available
+    if(hasRandomNumber)
+    {
+      ThingSpeak.setField(4, String(randomNumber));
+      Serial.print("Sending randomNumber thingspeak: ");
+      Serial.println(randomNumber);     
+    }
 
     ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
 
@@ -246,8 +259,16 @@ void loop()
     // wake wifi
     setWifi(true);
 
+    bool hasRandomNumber = false;
+    unsigned long randomNumber = 0;
+    if(trueRng.hasRandomNumber())
+    {
+      randomNumber = trueRng.rolloverRandomNumber();
+      hasRandomNumber = true;
+    }
+
     // push to data sinks
-    sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA);
+    sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA, hasRandomNumber, randomNumber);
     sendDataToRadmon(meanReportValue / coefficientOfConversion);
     
     // put wifi into sleep again
