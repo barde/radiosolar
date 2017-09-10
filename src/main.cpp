@@ -7,18 +7,18 @@
  * push of the average for 15 minutes. The data is converted to a rough estimation in micro Sievert per hour.
  */
 #include "Arduino.h"
-#include <ESP8266WiFi.h>    
+#include <ESP8266WiFi.h>
 #include "trueRng.h"
 extern "C" {
-  #include "user_interface.h"
+#include "user_interface.h"
 }
-#include <ThingSpeak.h> 
+#include <ThingSpeak.h>
 #include <Wire.h>
 #include <Adafruit_INA219.h>
 #include <ESP8266HTTPClient.h>
 
 // include your own credentials in this file
-#include "credentials.h"    
+#include "credentials.h"
 
 // the out pin of the geiger tube is connected via transistor to this pin of the esp8266
 int gm_action_pin = D8;
@@ -61,14 +61,14 @@ TrueRng trueRng;
 
 void ICACHE_RAM_ATTR cpm_event()
 {
-    cpm_raw = cpm_raw + 1;
+  cpm_raw = cpm_raw + 1;
 
-    trueRng.addTimestamp(millis());
+  trueRng.addTimestamp(millis());
 }
 
 void connectWiFi()
 {
-  if(WiFi.status() == WL_CONNECTED)
+  if (WiFi.status() == WL_CONNECTED)
   {
     return;
   }
@@ -88,7 +88,7 @@ void setWifi(bool isOn)
 {
   //noInterrupts();
 
-  if(isOn && isWifiSleeping)
+  if (isOn && isWifiSleeping)
   {
     // wake wifi
     WiFi.forceSleepWake();
@@ -103,7 +103,7 @@ void setWifi(bool isOn)
     isWifiSleeping = false;
   }
 
-  if(!isOn && !isWifiSleeping)
+  if (!isOn && !isWifiSleeping)
   {
     // put wifi into sleep
     WiFi.forceSleepBegin();
@@ -119,7 +119,7 @@ float getAverage(float singleValues[])
 {
   float totalAddedValue;
 
-  for(int i = 0; i < reportsMean; i++)
+  for (int i = 0; i < reportsMean; i++)
   {
     totalAddedValue += singleValues[i];
   }
@@ -131,57 +131,57 @@ void sendDataToRadmon(double cpm)
 {
   String uri = String("http://radmon.org/radmon.php?function=submit&user=");
   uri.concat(String(radmonUsername) + String("&password=") + String(radmonPassword));
-  uri.concat(String("&value=") + String(cpm,0) + String("&unit=CPM"));
+  uri.concat(String("&value=") + String(cpm, 0) + String("&unit=CPM"));
 
   Serial.print("RadmonString:");
   Serial.println(uri);
 
   http.begin(uri); //HTTP
-  
+
   int httpCode = http.GET();
 
-  if(httpCode == HTTP_CODE_OK) 
+  if (httpCode == HTTP_CODE_OK)
   {
     Serial.println("Data sent to Radmon");
   }
-  else 
+  else
   {
     Serial.println("Error sending data to Radmon");
   }
-  
+
   http.end();
 }
 
 void sendDataToThingspeak(float usvh, float voltage, float current, bool hasRandomNumber, unsigned long randomNumber)
 {
-    // make a neat char array from the usvh to post
-    String data = String(usvh, 5);
-    int length = data.length();
-    char msgBuffer[length];
-    data.toCharArray(msgBuffer,length+1);
-    Serial.print("Sending usvh data to thingspeak: ");
-    Serial.println(msgBuffer);  
-    ThingSpeak.setField(1, msgBuffer);
+  // make a neat char array from the usvh to post
+  String data = String(usvh, 5);
+  int length = data.length();
+  char msgBuffer[length];
+  data.toCharArray(msgBuffer, length + 1);
+  Serial.print("Sending usvh data to thingspeak: ");
+  Serial.println(msgBuffer);
+  ThingSpeak.setField(1, msgBuffer);
 
-    // voltage and current
-    ThingSpeak.setField(2, voltage);
-    Serial.print("Sending voltage data to thingspeak: ");
-    Serial.println(voltage);     
-    ThingSpeak.setField(3, current);
-    Serial.print("Sending current data to thingspeak: ");
-    Serial.println(current);  
+  // voltage and current
+  ThingSpeak.setField(2, voltage);
+  Serial.print("Sending voltage data to thingspeak: ");
+  Serial.println(voltage);
+  ThingSpeak.setField(3, current);
+  Serial.print("Sending current data to thingspeak: ");
+  Serial.println(current);
 
-    // a random number when available
-    if(hasRandomNumber)
-    {
-      ThingSpeak.setField(4, String(randomNumber));
-      Serial.print("Sending randomNumber thingspeak: ");
-      Serial.println(randomNumber);     
-    }
+  // a random number when available
+  if (hasRandomNumber)
+  {
+    ThingSpeak.setField(4, String(randomNumber));
+    Serial.print("Sending randomNumber thingspeak: ");
+    Serial.println(randomNumber);
+  }
 
-    ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+  ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
 
-    Serial.println("Data sent to IoT sink");
+  Serial.println("Data sent to IoT sink");
 }
 
 void logVoltageCurrent(byte logPlace)
@@ -195,11 +195,19 @@ void logVoltageCurrent(byte logPlace)
   busvoltage = ina219.getBusVoltage_V();
   current_mA = ina219.getCurrent_mA();
   loadvoltage = busvoltage + (shuntvoltage / 1000);
-  
-  Serial.print("Bus Voltage:   "); Serial.print(busvoltage); Serial.println(" V");
-  Serial.print("Shunt Voltage: "); Serial.print(shuntvoltage); Serial.println(" mV");
-  Serial.print("Load Voltage:  "); Serial.print(loadvoltage); Serial.println(" V");
-  Serial.print("Current:       "); Serial.print(current_mA); Serial.println(" mA");
+
+  Serial.print("Bus Voltage:   ");
+  Serial.print(busvoltage);
+  Serial.println(" V");
+  Serial.print("Shunt Voltage: ");
+  Serial.print(shuntvoltage);
+  Serial.println(" mV");
+  Serial.print("Load Voltage:  ");
+  Serial.print(loadvoltage);
+  Serial.println(" V");
+  Serial.print("Current:       ");
+  Serial.print(current_mA);
+  Serial.println(" mA");
   Serial.println("");
 
   cachedVoltage[logPlace] = loadvoltage;
@@ -227,7 +235,7 @@ void loop()
   unsigned long currentMillis = millis();
 
   // run every minute
-  if (currentMillis - previousMillisRead >= interval) 
+  if (currentMillis - previousMillisRead >= interval)
   {
     previousMillisRead = currentMillis;
 
@@ -240,6 +248,18 @@ void loop()
     Serial.print("uSv/h: ");
     Serial.println(usvh, 5);
 
+    short randomnessBits = trueRng.getRandomBitLength();
+    Serial.print("Bits of collected randomness: ");
+    Serial.println(randomnessBits);
+
+    if (randomnessBits > 0)
+    {
+      Serial.print("Decimal value of current random data: ");
+      Serial.println(trueRng.getRandomBits());
+      Serial.print("Binary value of current random value: ");
+      Serial.println(trueRng.getRandomBits(), BIN);
+    }
+
     cachedData[writtenReports] = usvh;
     logVoltageCurrent(writtenReports);
     writtenReports = writtenReports + 1;
@@ -249,7 +269,7 @@ void loop()
   if (currentMillis - previousMillisReport >= interval * reportsMean)
   {
     previousMillisReport = currentMillis;
-    
+
     writtenReports = 0;
 
     float meanReportValue = getAverage(cachedData);
@@ -261,7 +281,7 @@ void loop()
 
     bool hasRandomNumber = false;
     unsigned long randomNumber = 0;
-    if(trueRng.hasRandomNumber())
+    if (trueRng.hasRandomNumber())
     {
       randomNumber = trueRng.rolloverRandomNumber();
       hasRandomNumber = true;
@@ -270,7 +290,7 @@ void loop()
     // push to data sinks
     sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA, hasRandomNumber, randomNumber);
     sendDataToRadmon(meanReportValue / coefficientOfConversion);
-    
+
     // put wifi into sleep again
     setWifi(false);
   }

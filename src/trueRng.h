@@ -10,4 +10,6 @@ class TrueRng
     void addTimestamp(unsigned long);
     bool hasRandomNumber();
     unsigned long rolloverRandomNumber();
+    unsigned long getRandomBits();    
+    short getRandomBitLength();
 };
