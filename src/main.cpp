@@ -16,6 +16,7 @@ extern "C" {
 #include <Wire.h>
 #include <Adafruit_INA219.h>
 #include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
 
 // include your own credentials in this file
 #include "credentials.h"
@@ -230,6 +231,22 @@ void setup()
   //ina219.setCalibration_16V_400mA();
 }
 
+void checkForFirmwareOTA()
+{
+  t_httpUpdate_return ret = ESPhttpUpdate.update(otaHostname, otaPort, otaUri, firmwareVersion);
+  switch(ret) {
+      case HTTP_UPDATE_FAILED:
+          Serial.println("[update] Update failed.");
+          break;
+      case HTTP_UPDATE_NO_UPDATES:
+          Serial.println("[update] Update no Update.");
+          break;
+      case HTTP_UPDATE_OK:
+          Serial.println("[update] Update ok."); // may not called we reboot the ESP
+          break;
+  }
+}
+
 void loop()
 {
   unsigned long currentMillis = millis();
@@ -290,6 +307,8 @@ void loop()
     // push to data sinks
     sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA, hasRandomNumber, randomNumber);
     sendDataToRadmon(meanReportValue / coefficientOfConversion);
+
+    checkForFirmwareOTA();
 
     // put wifi into sleep again
     setWifi(false);

@@ -37,6 +37,11 @@ char wifiHostname[] = "radiosolar";
 
 const char* radmonUsername = "myRadmonUser";
 const char* radmonPassword = "LetTheAdminGenerateIt";
+
+const char* otaHostname = "myServer";
+const int otaPort     = 8887;
+const char* otaUri    = "esp.cgi";
+const char* firmwareVersion = "0.1";
 ```
 
 ### Features
@@ -47,6 +52,8 @@ const char* radmonPassword = "LetTheAdminGenerateIt";
 + ESP8266 Modem Sleep (=Wifi turned off) for power preservation
 + logging of battery charge and discharge
 + MQTT support for Thingspeak as IoT data sink
++ generates slowly albeit constantly true random numbers
++ Over-The-Air updates
 
 ### Hardware in this setup
 
@@ -98,7 +105,13 @@ This setup also generates true random numbers. The algorithm is a derived form o
 [random number generator](https://sites.google.com/site/astudyofentropy/project-definition/radioactive-decay).
 It posts a full unsigned int when enough entropy has been collected.
 
-The collection of all collected randomness is posted to the IoT data sink.
+The collection of all collected randomness is available to the IoT data sink page. Every bit is truly random and has no 
+connection to any previous or following values.
+
+### OTA Updates
+
+A small example backend will follow soon. This is handy for updating the firmware on the ESP8266 without disassembling the
+case.
 
 ### Demo
 
