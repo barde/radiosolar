@@ -23,9 +23,15 @@ needed battery capacity and solar panel size.
 + Create your credentials.h
 + Compile and flash the code with either the Arduino IDE, PlatformIO or the Espressif IDF
 
+#### Recommended tooling
+
+Install [PlatformIO](http://platformio.org/) - most comfortably from the extension manager in [Visual Studio Code](https://code.visualstudio.com/).
+Select your board and use the initialization command. Restart the IDE on every dialog requesting you to do so until no more dialogs appear. 
+Connect your device and start the upload task. You should be ready. 
+
 #### credentials.h
 
-Save as credentials.h in the src directory.
+Save as credentials.h in the src directory and fill in your data.
 
 ```cpp
 unsigned long myChannelNumber = 123456;
@@ -64,7 +70,7 @@ const char* firmwareVersion = "0.1";
 + all diodes are LX2410A by MicroSemi
 + BQ24650 solar charge controller
 + Polulu 5V step down with >98% efficiency
-+ 2s2p 8.4 V 4 Ah Lithium Ion battery with a BMS
++ 2s2p 8.4 V 4 Ah Lithium Ion battery with a BMS and protection
 
 #### Power considerations
 
@@ -85,7 +91,7 @@ advised. My setup uses a 2p2s Lithium Ion combination with the BQ24650 from TI.
 
 #### Case
 
-This project comes with a ~~batteries~~ [3D printed case](../master/doc/case.stl) included.
+This project comes with ~~batteries~~ [a 3D printed case](../master/doc/case.stl) included.
 
 ### Possible improvements
 
