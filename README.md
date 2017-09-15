@@ -103,10 +103,14 @@ changes below hinder possible bug fixing and development.
 
 This setup also generates true random numbers. The algorithm is a derived form of John Walker's 
 [random number generator](https://sites.google.com/site/astudyofentropy/project-definition/radioactive-decay).
-It posts a full unsigned int when enough entropy has been collected.
+It posts a full unsigned 32 bit integer when enough entropy has been collected.
 
 The collection of all collected randomness is available to the IoT data sink page. Every bit is truly random and has no 
 connection to any previous or following values.
+
+#### Example Usage
+
+The [tools](../master/tools/) subdirectory contains sample code for using true randomness in your application.
 
 ### OTA Updates
 
