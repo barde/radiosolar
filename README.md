@@ -116,7 +116,7 @@ connection to any previous or following values.
 
 #### Example Usage
 
-The [tools](../master/tools/) subdirectory contains sample code for using true randomness in your application.
+The [example](../master/example/) subdirectory contains sample code for using true randomness in your application.
 
 ### OTA Updates
 
