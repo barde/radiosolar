@@ -23,7 +23,8 @@ def main():
   longRandomness = ''
 
   for randomValue in randomness:
-    longRandomness = longRandomness + "{0:b}".format(int(randomValue))
+    if randomValue is not None:
+      longRandomness = longRandomness + "{0:b}".format(int(randomValue)) + "\n"
 
   httpConnection.close()
 

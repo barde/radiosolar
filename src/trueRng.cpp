@@ -10,6 +10,7 @@ class TrueRng
     unsigned long randomNumberCache = RNG_SEED;
     bool lastNonrandomBitReached = false;
     void cleanUp();
+    void probeForFullness();
   public:
     TrueRng();
     void addTimestamp(unsigned long);
@@ -80,6 +81,8 @@ void TrueRng::addTimestamp(unsigned long millis)
         return;
     }
 
+    this->probeForFullness();    
+
     bool randomBit = t1 < t2;
     this->randomNumberCache = this->randomNumberCache << 1;
     
@@ -96,23 +99,21 @@ void TrueRng::cleanUp()
     this->secondEventStop = 0;
 }
 
-bool TrueRng::hasRandomNumber()
+void TrueRng::probeForFullness()
 {
-    if (this->lastNonrandomBitReached)
-    {
-        return true;
-    }
-
     int bitCount = sizeof(unsigned long) * 8;
-
+    
     // if checked position is our RNG_SEED (only 1 is useful)
     // we are sure to have a full unsigned int of randomness
     if (this->randomNumberCache >> (bitCount - 1) == RNG_SEED)
     {
         this->lastNonrandomBitReached = true;
     }
+}
 
-    return false;
+bool TrueRng::hasRandomNumber()
+{
+    return this->lastNonrandomBitReached;
 }
 
 unsigned long TrueRng::rolloverRandomNumber()
