@@ -3,7 +3,6 @@ class TrueRng
     unsigned long firstEventStart, firstEventStop, secondEventStart, secondEventStop;
     unsigned long randomNumberCache;
     bool lastNonrandomBitReached;
-    void cleanUp();
 
   public:
     TrueRng();
@@ -12,4 +11,5 @@ class TrueRng
     unsigned long rolloverRandomNumber();
     unsigned long getRandomBits();    
     short getRandomBitLength();
+    void cleanUp();    
 };

@@ -52,6 +52,12 @@ unsigned long previousMillisRead = 0;
 // counts the events per minute in the ISR
 volatile int cpm_raw = 0;
 
+// milli timestamp of the last event
+volatile unsigned long lastEventMillis = 0;
+
+// flag for abortion of rng number collection
+volatile bool abortRngCollection = false;
+
 // magic number for LND 712 to convert from cpm to uSv/h
 const double coefficientOfConversion = 0.00812;
 
@@ -64,7 +70,15 @@ void ICACHE_RAM_ATTR cpm_event()
 {
   cpm_raw = cpm_raw + 1;
 
-  trueRng.addTimestamp(millis());
+  if (lastEventMillis == 0)
+  {
+    lastEventMillis = millis();
+  }
+  else
+  {
+    //ouch
+    abortRngCollection = true;
+  }
 }
 
 void connectWiFi()
@@ -234,27 +248,46 @@ void setup()
 void checkForFirmwareOTA()
 {
   t_httpUpdate_return ret = ESPhttpUpdate.update(otaHostname, otaPort, otaUri, firmwareVersion);
-  switch(ret) {
-      case HTTP_UPDATE_FAILED:
-          Serial.println("[update] Update failed.");
-          break;
-      case HTTP_UPDATE_NO_UPDATES:
-          Serial.println("[update] Update no Update.");
-          break;
-      case HTTP_UPDATE_OK:
-          Serial.println("[update] Update ok."); // may not called we reboot the ESP
-          break;
+  switch (ret)
+  {
+  case HTTP_UPDATE_FAILED:
+    Serial.println("[update] Update failed.");
+    break;
+  case HTTP_UPDATE_NO_UPDATES:
+    Serial.println("[update] Update no Update.");
+    break;
+  case HTTP_UPDATE_OK:
+    Serial.println("[update] Update ok."); // may not called we reboot the ESP
+    break;
   }
 }
 
 void loop()
 {
+  // take care of a recorded event timestamp
+  if (abortRngCollection == true)
+  {
+    trueRng.cleanUp();
+    Serial.println("Error! Millis were not cleared!");
+    abortRngCollection = false;
+    lastEventMillis = 0;
+  }
+
+  if (lastEventMillis != 0)
+  {
+    trueRng.addTimestamp(lastEventMillis);
+    lastEventMillis = 0;
+  }
+
   unsigned long currentMillis = millis();
 
   // run every minute
   if (currentMillis - previousMillisRead >= interval)
   {
     previousMillisRead = currentMillis;
+
+    Serial.print("CPM: ");
+    Serial.println(cpm_raw);
 
     // transform cpm to microsievert per second
     noInterrupts();
