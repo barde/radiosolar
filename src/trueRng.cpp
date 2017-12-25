@@ -1,7 +1,3 @@
-#define RNG_SEED 1
-
-#define randomCacheBitSize sizeof(unsigned long) * 8
-
 #define bitSet(value, bit) ((value) |= (1UL << (bit)))
 #define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
 #define bitWrite(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
@@ -9,9 +5,8 @@
 class TrueRng
 {
     unsigned long firstEventStart, firstEventStop, secondEventStart, secondEventStop = 0;
-    unsigned long randomNumberCache = RNG_SEED;
-    bool lastNonrandomBitReached = false;
-    void probeForFullness();
+    unsigned long randomNumberCache = 0;
+	short randomBitsCount = 0;
 
   public:
     TrueRng();
@@ -25,6 +20,7 @@ class TrueRng
 
 TrueRng::TrueRng()
 {
+	this->cleanUp();
 }
 
 void TrueRng::addTimestamp(unsigned long millis)
@@ -84,14 +80,14 @@ void TrueRng::addTimestamp(unsigned long millis)
         return;
     }
 
-    this->probeForFullness();
-
     bool randomBit = t1 < t2;
     this->randomNumberCache = this->randomNumberCache << 1;
 
     // enrich the rng cache with the result of our decay difference lengths
     bitWrite(this->randomNumberCache, 0, randomBit);
-    this->cleanUp();
+    
+	this->cleanUp();
+	this->randomBitsCount++;
 }
 
 void TrueRng::cleanUp()
@@ -102,59 +98,24 @@ void TrueRng::cleanUp()
     this->secondEventStop = 0;
 }
 
-void TrueRng::probeForFullness()
-{
-    if (this->getRandomBitLength() == (randomCacheBitSize - 1))
-    {
-        this->lastNonrandomBitReached = true;
-    }
-}
-
 bool TrueRng::hasRandomNumber()
 {
-    return this->lastNonrandomBitReached;
+	return this->randomBitsCount == 32;
 }
 
 unsigned long TrueRng::rolloverRandomNumber()
 {
     unsigned long randomNumber = this->randomNumberCache;
 
-    this->randomNumberCache = RNG_SEED;
-    this->lastNonrandomBitReached = false;
-
     return randomNumber;
 }
 
 unsigned long TrueRng::getRandomBits()
 {
-    if (this->hasRandomNumber())
-    {
-        return this->randomNumberCache;
-    }
-    else
-    {
-        unsigned long randomBits = this->randomNumberCache;
-
-        // remove the '1' at the front which is just used as a marker
-        //bitWrite(randomBits, this->getRandomBitLength(), 0);
-        short inverseBitCount = randomCacheBitSize - this->getRandomBitLength();
-        randomBits = ((randomBits << inverseBitCount) >> inverseBitCount);
-        return randomBits;
-    }
+    return this->randomNumberCache;
 }
 
 short TrueRng::getRandomBitLength()
 {
-    if (this->hasRandomNumber())
-    {
-        return randomCacheBitSize;
-    }
-
-    for (int bitLength = 0; bitLength < randomCacheBitSize; bitLength++)
-    {
-        if (this->randomNumberCache >> bitLength == RNG_SEED)
-        {
-            return --bitLength;
-        }
-    }
+	return this->randomBitsCount;
 }
