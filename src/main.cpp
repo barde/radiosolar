@@ -9,6 +9,7 @@
 #include "Arduino.h"
 #include <ESP8266WiFi.h>
 #include "trueRng.h"
+#include "geigerEventBuffer.h"
 extern "C" {
 #include "user_interface.h"
 }
@@ -52,12 +53,6 @@ unsigned long previousMillisRead = 0;
 // counts the events per minute in the ISR
 volatile int cpm_raw = 0;
 
-// milli timestamp of the last event
-volatile unsigned long lastEventMillis = 0;
-
-// flag for abortion of rng number collection
-volatile bool abortRngCollection = false;
-
 // magic number for LND 712 to convert from cpm to uSv/h
 const double coefficientOfConversion = 0.00812;
 
@@ -65,20 +60,13 @@ WiFiClient espClient;
 HTTPClient http;
 
 TrueRng trueRng;
+GeigerEventBuffer geigerEventBuffer;
 
 void ICACHE_RAM_ATTR cpm_event()
 {
   cpm_raw = cpm_raw + 1;
 
-  if (lastEventMillis == 0)
-  {
-    lastEventMillis = millis();
-  }
-  else
-  {
-    //ouch
-    abortRngCollection = true;
-  }
+  geigerEventBuffer.addTimestamp(millis());
 }
 
 void connectWiFi()
@@ -186,6 +174,7 @@ void sendDataToThingspeak(float usvh, float voltage, float current, bool hasRand
   Serial.print("Sending current data to thingspeak: ");
   Serial.println(current);
 
+  /**
   // a random number when available
   if (hasRandomNumber)
   {
@@ -193,6 +182,7 @@ void sendDataToThingspeak(float usvh, float voltage, float current, bool hasRand
     Serial.print("Sending randomNumber thingspeak: ");
     Serial.println(randomNumber);
   }
+  **/
 
   ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
 
@@ -264,24 +254,15 @@ void checkForFirmwareOTA()
 
 void loop()
 {
-  // take care of a recorded event timestamp
-  if (abortRngCollection == true)
+  // add timestamps for randomness collection
+  if (geigerEventBuffer.hasTimestamp())
   {
-    trueRng.cleanUp();
-    Serial.println("Error! Millis were not cleared!");
-    abortRngCollection = false;
-    lastEventMillis = 0;
-  }
-
-  if (lastEventMillis != 0)
-  {
-    trueRng.addTimestamp(lastEventMillis);
-    lastEventMillis = 0;
+    trueRng.addTimestamp(geigerEventBuffer.getTimestamp());
   }
 
   unsigned long currentMillis = millis();
 
-  // run every minute
+  // run every minute some service
   if (currentMillis - previousMillisRead >= interval)
   {
     previousMillisRead = currentMillis;
@@ -302,6 +283,7 @@ void loop()
     Serial.print("Bits of collected randomness: ");
     Serial.println(randomnessBits);
 
+/**
     if (randomnessBits > 0)
     {
       Serial.print("Decimal value of current random data: ");
@@ -309,6 +291,7 @@ void loop()
       Serial.print("Binary value of current random value: ");
       Serial.println(trueRng.getRandomBits(), BIN);
     }
+    **/
 
     cachedData[writtenReports] = usvh;
     logVoltageCurrent(writtenReports);
@@ -331,11 +314,14 @@ void loop()
 
     bool hasRandomNumber = false;
     unsigned long randomNumber = 0;
+
+    /**
     if (trueRng.hasRandomNumber())
     {
       randomNumber = trueRng.rolloverRandomNumber();
       hasRandomNumber = true;
     }
+    **/
 
     // push to data sinks
     sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA, hasRandomNumber, randomNumber);

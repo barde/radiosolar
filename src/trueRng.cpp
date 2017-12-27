@@ -1,121 +1,82 @@
-#define bitSet(value, bit) ((value) |= (1UL << (bit)))
-#define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
-#define bitWrite(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
+#include <string>
+#include <stdexcept>
+
+using namespace std;
 
 class TrueRng
 {
-    unsigned long firstEventStart, firstEventStop, secondEventStart, secondEventStop = 0;
-    unsigned long randomNumberCache = 0;
-	short randomBitsCount = 0;
+    unsigned long randomEventTimes [4] = { 0, 0 ,0 ,0};
+    short collectedEvents = 0;
+    string randomnessDatastore;
 
-  public:
-    TrueRng();
-    void addTimestamp(unsigned long);
-    bool hasRandomNumber();
-    unsigned long rolloverRandomNumber();
-    unsigned long getRandomBits();
-    void cleanUp();
-    short getRandomBitLength();
+    public:
+        TrueRng();
+        void addTimestamp(unsigned long);
+        bool hasRandomNumber();
+        string rolloverRandomNumber();
+        int getRandomBitLength();
+
+    private:
+        void calculateRandomBit();
 };
 
 TrueRng::TrueRng()
 {
-	this->cleanUp();
 }
 
 void TrueRng::addTimestamp(unsigned long millis)
 {
-    // this should never happen
-    if (millis == 0)
+    switch (collectedEvents)
     {
-        cleanUp();
-        return;
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            this->randomEventTimes[collectedEvents] = millis;
+            return;
+
+        case 4:
+            this->calculateRandomBit();
+        default:
+            invalid_argument( "cannot reach this state" );
     }
+}
 
-    // we already have a random number for pickup
-    if (this->hasRandomNumber())
-    {
-        return;
-    }
-
-    if (firstEventStart == 0)
-    {
-        firstEventStart = millis;
-        return;
-    }
-
-    if (firstEventStop == 0)
-    {
-        firstEventStop = millis;
-        return;
-    }
-
-    if (secondEventStart == 0)
-    {
-        secondEventStart = millis;
-        return;
-    }
-
-    if (secondEventStop == 0)
-    {
-        secondEventStop = millis;
-    }
-
-    // buffers are full but random number not generated. we take the function as a "miss" and
-    // just do the end calculation
-
-    // shamelessly taken from John Walkers ingenious invention on how to get real random numbers.
-    // Autodesk has good devs.
+void TrueRng::calculateRandomBit()
+{
+    // Inspiration taken from John Walkers ingenious invention on how to get real random numbers.
     // Principle: we count the time period between two pairs of "tube events" (=radioactive emission registration by the Miller tube)
     // If both periods are same, well, thats interesting but should be very seldom as we count in us.
     // Otherwise a comparison generates one bit of true random data.
     // The random data is collected for later usage.
-    unsigned long t1 = firstEventStop - firstEventStart;
-    unsigned long t2 = secondEventStop - secondEventStart;
+    unsigned long t1 = randomEventTimes[1] - randomEventTimes[0];
+    unsigned long t2 = randomEventTimes[3] - randomEventTimes[2];
 
     if (t1 == t2)
     {
         // exactly the same time period between the two pairs of measurements. this gets discarded.
-        this->cleanUp();
+        this->collectedEvents = 0;
         return;
     }
 
-    bool randomBit = t1 < t2;
-    this->randomNumberCache = this->randomNumberCache << 1;
-
-    // enrich the rng cache with the result of our decay difference lengths
-    bitWrite(this->randomNumberCache, 0, randomBit);
-    
-	this->cleanUp();
-	this->randomBitsCount++;
-}
-
-void TrueRng::cleanUp()
-{
-    this->firstEventStart = 0;
-    this->firstEventStop = 0;
-    this->secondEventStart = 0;
-    this->secondEventStop = 0;
+    this->randomnessDatastore += (t1 < t2) ? "0" : "1";
+    this->collectedEvents = 0;
 }
 
 bool TrueRng::hasRandomNumber()
 {
-	return this->randomBitsCount == 32;
+	return this->randomnessDatastore.size() != 0;
 }
 
-unsigned long TrueRng::rolloverRandomNumber()
+string TrueRng::rolloverRandomNumber()
 {
-    unsigned long randomNumber = this->randomNumberCache;
+    string randomness (this->randomnessDatastore);
+    this->randomnessDatastore.clear();
 
-    return randomNumber;
+    return randomness;
 }
 
-unsigned long TrueRng::getRandomBits()
+int TrueRng::getRandomBitLength()
 {
-    return this->randomNumberCache;
-}
-
-short TrueRng::getRandomBitLength()
-{
-	return this->randomBitsCount;
+	return this->randomnessDatastore.size();
 }

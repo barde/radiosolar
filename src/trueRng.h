@@ -1,3 +1,5 @@
+#include <string>
+
 class TrueRng
 {
     unsigned long firstEventStart, firstEventStop, secondEventStart, secondEventStop;
@@ -8,8 +10,6 @@ class TrueRng
     TrueRng();
     void addTimestamp(unsigned long);
     bool hasRandomNumber();
-    unsigned long rolloverRandomNumber();
-    unsigned long getRandomBits();    
-    short getRandomBitLength();
-    void cleanUp();    
+    std::string rolloverRandomNumber();
+    int getRandomBitLength();
 };
