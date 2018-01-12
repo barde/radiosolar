@@ -10,6 +10,11 @@ Mostly the low power functionality of the ESP8266 is heavily used such as the "m
 The battery load and charge is logged which also provides the sunshine time. This is used for making the proper size for the
 needed battery capacity and solar panel size. 
 
+Later on the desire for additional functionality lead to the inclusion of the well known "randomness by radioactive decay time period differences" algorithm and
+later on some back-end.
+
+🔴 🔴 🔴 This project is now discontinued for the open source version. A "sell computing power for randomness" is offered as a service at (https://rng.phialo.de). 🔴 🔴 🔴
+
 ### How
 
 + Get the hardware
@@ -48,6 +53,9 @@ const char* otaHostname = "myServer";
 const int otaPort     = 8887;
 const char* otaUri    = "esp.cgi";
 const char* firmwareVersion = "0.1";
+
+const char* trueRngEndpoint = "https://example.com/Data";
+const char* trueRngSecret = "ABCD123";
 ```
 
 ### Features
@@ -58,8 +66,8 @@ const char* firmwareVersion = "0.1";
 + ESP8266 Modem Sleep (=Wifi turned off) for power preservation
 + logging of battery charge and discharge
 + MQTT support for Thingspeak as IoT data sink
-+ generates slowly albeit constantly true random numbers
-+ Over-The-Air updates
++ generates slowly albeit constantly true random numbers and posts them to your own API endpoint
++ Posting of radiation data to distributed map service Radmon
 
 ### Hardware in this setup
 
@@ -117,11 +125,6 @@ connection to any previous or following values.
 #### Example Usage
 
 The [example](../master/example/) subdirectory contains sample code for using true randomness in your application.
-
-### OTA Updates
-
-A small example backend will follow soon. This is handy for updating the firmware on the ESP8266 without disassembling the
-case.
 
 ### Demo
 
