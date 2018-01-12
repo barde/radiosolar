@@ -155,7 +155,30 @@ void sendDataToRadmon(double cpm)
   http.end();
 }
 
-void sendDataToThingspeak(float usvh, float voltage, float current, bool hasRandomNumber, unsigned long randomNumber)
+void sendDataToTrueRng(String randomnessString)
+{
+  Serial.print("Randomness posted to TrueRng:");
+  Serial.println(randomnessString);
+  
+  http.addHeader("X-Randomness-Secret", trueRngSecret);
+
+  http.begin(trueRngEndpoint); //HTTP
+
+  int httpCode = http.POST("randomness=" + randomnessString);
+
+  if (httpCode == HTTP_CODE_OK)
+  {
+    Serial.println("Data sent to Radmon");
+  }
+  else
+  {
+    Serial.println("Error sending data to Radmon");
+  }
+
+  http.end();
+}
+
+void sendDataToThingspeak(float usvh, float voltage, float current)
 {
   // make a neat char array from the usvh to post
   String data = String(usvh, 5);
@@ -173,17 +196,7 @@ void sendDataToThingspeak(float usvh, float voltage, float current, bool hasRand
   ThingSpeak.setField(3, current);
   Serial.print("Sending current data to thingspeak: ");
   Serial.println(current);
-
-  /**
-  // a random number when available
-  if (hasRandomNumber)
-  {
-    ThingSpeak.setField(4, String(randomNumber));
-    Serial.print("Sending randomNumber thingspeak: ");
-    Serial.println(randomNumber);
-  }
-  **/
-
+  
   ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
 
   Serial.println("Data sent to IoT sink");
@@ -312,19 +325,13 @@ void loop()
     // wake wifi
     setWifi(true);
 
-    bool hasRandomNumber = false;
-    unsigned long randomNumber = 0;
-
-    /**
     if (trueRng.hasRandomNumber())
     {
-      randomNumber = trueRng.rolloverRandomNumber();
-      hasRandomNumber = true;
+      sendDataToTrueRng(trueRng.rolloverRandomNumber());
     }
-    **/
 
     // push to data sinks
-    sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA, hasRandomNumber, randomNumber);
+    sendDataToThingspeak(meanReportValue, meanVoltage, meanCurrent_mA);
     sendDataToRadmon(meanReportValue / coefficientOfConversion);
 
     checkForFirmwareOTA();

@@ -1,4 +1,4 @@
-#include <string>
+#include <Arduino.h>
 
 class TrueRng
 {
@@ -10,6 +10,6 @@ class TrueRng
     TrueRng();
     void addTimestamp(unsigned long);
     bool hasRandomNumber();
-    std::string rolloverRandomNumber();
+    String rolloverRandomNumber();
     int getRandomBitLength();
 };

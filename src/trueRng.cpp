@@ -1,4 +1,4 @@
-#include <string>
+#include <Arduino.h>
 #include <stdexcept>
 
 using namespace std;
@@ -7,13 +7,13 @@ class TrueRng
 {
     unsigned long randomEventTimes [4] = { 0, 0 ,0 ,0};
     short collectedEvents = 0;
-    string randomnessDatastore;
+    String randomnessDatastore;
 
     public:
         TrueRng();
         void addTimestamp(unsigned long);
         bool hasRandomNumber();
-        string rolloverRandomNumber();
+        String rolloverRandomNumber();
         int getRandomBitLength();
 
     private:
@@ -65,18 +65,18 @@ void TrueRng::calculateRandomBit()
 
 bool TrueRng::hasRandomNumber()
 {
-	return this->randomnessDatastore.size() != 0;
+	return this->randomnessDatastore.length() != 0;
 }
 
-string TrueRng::rolloverRandomNumber()
+String TrueRng::rolloverRandomNumber()
 {
-    string randomness (this->randomnessDatastore);
-    this->randomnessDatastore.clear();
+    String randomness (this->randomnessDatastore);
+    this->randomnessDatastore = "";
 
     return randomness;
 }
 
 int TrueRng::getRandomBitLength()
 {
-	return this->randomnessDatastore.size();
+	return this->randomnessDatastore.length();
 }
