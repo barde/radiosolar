@@ -2,6 +2,11 @@
 
 ![](doc/logo.png?raw=true)
 
+## End of life
+
+:exclamation: **This project is now discontinued** :exclamation:
+:cloud: **_A "sell computing power for randomness" is offered as a service at https://rng.phialo.de_** :cloud:
+
 ### Why
 
 Proof of concept to make a low power device with the ESP8266.
@@ -12,8 +17,6 @@ needed battery capacity and solar panel size.
 
 Later on the desire for additional functionality lead to the inclusion of the well known "randomness by radioactive decay time period differences" algorithm and
 later on some back-end.
-
-🔴 🔴 🔴 This project is now discontinued for the open source version. A "sell computing power for randomness" is offered as a service at (https://rng.phialo.de). 🔴 🔴 🔴
 
 ### How
 
