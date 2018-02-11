@@ -6,8 +6,10 @@
 
 :exclamation: **This project is now discontinued** :exclamation:
 
+:exclamation: **More featured radio logger on ESP8622 platform is [Radmon](https://sites.google.com/site/diygeigercounter/gk-radmon)** :exclamation:
 
-:cloud: **_A "sell computing power for randomness" is offered as a service at https://rng.phialo.de_** :cloud:
+
+:cloud: **_A "sell computing power for randomness" is offered as a service at https://rng.cloud_** :cloud:
 
 ### Why
 
